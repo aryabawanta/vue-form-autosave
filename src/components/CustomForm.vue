@@ -1,13 +1,19 @@
 <template>
     <div class="w-full flex justify-center flex-col">
         <div class="flex container mx-auto flex-col">
-            <div class="status w-full justify-center mb-10">
+            <div class="status w-full justify-center">
                 <span v-if="conditions.saving">
                     Saving...
                 </span>
                 <span v-else>
                     All changes saved
                 </span>
+            </div>
+            <div class="shadow w-full bg-grey-light mt-2">
+                <div
+                    class="progress text-xs leading-none py-1 text-center text-white"
+                    :style="`width: ${inputs.percentage}%`"
+                ></div>
             </div>
             <custom-input
                 class="my-5"
@@ -39,15 +45,6 @@
                 placeholder="example : Bali, Indonesia"
                 v-model="inputs.address"
             ></custom-input>
-
-            <div v-if="false" class="flex w-1/2 mx-auto justify-end my-5">
-                <button
-                    @click="saveData()"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                >
-                    Submit
-                </button>
-            </div>
         </div>
     </div>
 </template>
@@ -71,6 +68,7 @@ export default {
                 job: "",
                 name_first: "",
                 name_last: "",
+                percentage: 0,
             },
         };
     },
@@ -92,6 +90,20 @@ export default {
         },
     },
     methods: {
+        calculateFormCompletion() {
+            let total = 0;
+            let completed = 0;
+            for (const property in this.inputs) {
+                if (property == "percentage") continue;
+                total++;
+                const input = this.inputs[property];
+                if (input != "") {
+                    completed++;
+                }
+            }
+            if (total == 0) return 0;
+            this.inputs.percentage = (completed / total) * 100;
+        },
         initializeData() {
             return db
                 .collection("submissions")
@@ -101,6 +113,7 @@ export default {
                 });
         },
         saveData() {
+            this.calculateFormCompletion();
             this.conditions.saving = true;
             return db
                 .collection("submissions")
@@ -127,7 +140,9 @@ export default {
 }
 .status {
     padding: 10px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     color: rgba(0, 0, 0, 0.5);
+}
+.progress {
+    background: #4080ff;
 }
 </style>
